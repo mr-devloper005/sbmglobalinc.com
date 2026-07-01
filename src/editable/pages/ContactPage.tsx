@@ -6,11 +6,12 @@ import { getFactoryState } from '@/design/factory/get-factory-state'
 import { getProductKind } from '@/design/factory/get-product-kind'
 import { EditableContactLeadForm } from '@/editable/components/EditableContactLeadForm'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
+import { EditableFaq } from '@/editable/sections/HomeFeaturedSections'
 
 const tone = {
   shell: 'bg-[var(--slot4-page-bg)] text-[var(--slot4-page-text)]',
-  panel: 'border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)]',
-  soft: 'border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]',
+  panel: 'rounded-[var(--editable-radius-card)] border border-[var(--editable-border)] bg-[var(--slot4-surface-bg)]',
+  soft: 'rounded-[var(--editable-radius-card)] border border-[var(--editable-border)] bg-[var(--slot4-panel-bg)]',
   muted: 'text-[var(--slot4-muted-text)]',
   action: 'bg-[var(--slot4-accent-fill)] text-[var(--slot4-on-accent)] hover:opacity-90',
 }
@@ -51,28 +52,36 @@ export default function ContactPage() {
 
   return (
     <EditableSiteShell className={tone.shell}>
-      <main className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--slot4-accent)]">{pagesContent.contact.eyebrow}</p>
-            <h1 className="editable-display mt-4 text-5xl font-semibold tracking-[-0.02em]">{pagesContent.contact.title}</h1>
-            <p className={`mt-5 max-w-2xl text-sm leading-8 ${tone.muted}`}>{pagesContent.contact.description}</p>
-            <div className="mt-8 space-y-4">
-              {lanes.map((lane) => (
-                <div key={lane.title} className={`rounded-sm p-5 ${tone.soft}`}>
-                  <lane.icon className="h-5 w-5 text-[var(--slot4-accent)]" />
-                  <h2 className="editable-display mt-3 text-xl font-semibold">{lane.title}</h2>
-                  <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
-                </div>
-              ))}
+      <main>
+        <section className="mx-auto max-w-[var(--editable-container)] px-4 py-14 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--slot4-accent)]">{pagesContent.contact.eyebrow}</p>
+              <h1 className="editable-display mt-4 text-4xl font-normal tracking-[-0.02em] sm:text-5xl">{pagesContent.contact.title}</h1>
+              <p className={`mt-5 max-w-2xl text-sm leading-8 ${tone.muted}`}>{pagesContent.contact.description}</p>
+              <div className="mt-8 space-y-4">
+                {lanes.map((lane) => (
+                  <div key={lane.title} className={`p-5 ${tone.soft}`}>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--slot4-accent-soft)] text-[var(--slot4-accent)]">
+                      <lane.icon className="h-4 w-4" />
+                    </span>
+                    <h2 className="editable-display mt-3 text-lg font-normal tracking-[-0.01em]">{lane.title}</h2>
+                    <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>{lane.body}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={`p-7 ${tone.panel}`}>
+              <h2 className="editable-display text-2xl font-normal tracking-[-0.01em]">{pagesContent.contact.formTitle}</h2>
+              <EditableContactLeadForm />
             </div>
           </div>
-
-          <div className={`rounded-sm p-7 ${tone.panel}`}>
-            <h2 className="editable-display text-2xl font-semibold">{pagesContent.contact.formTitle}</h2>
-            <EditableContactLeadForm />
-          </div>
         </section>
+
+        <div className="border-t border-[var(--editable-border)]">
+          <EditableFaq />
+        </div>
       </main>
     </EditableSiteShell>
   )

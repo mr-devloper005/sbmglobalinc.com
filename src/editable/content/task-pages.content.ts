@@ -28,11 +28,11 @@ export const taskPageVoices = {
   },
   sbm: {
     eyebrow: 'Saved resources',
-    headline: 'Social bookmarks arranged like curated collections.',
-    description: 'Bookmark pages should feel like shelves of useful resources, tools, references, and collections.',
-    filterLabel: 'Filter collection',
-    secondaryNote: 'Curated resources need grouping and calm metadata.',
-    chips: ['Collections', 'Resources', 'Reference flow'],
+    headline: 'Bookmarks worth saving, organized by category.',
+    description: 'Every bookmark here has been submitted and reviewed — a curated shelf of links, tools, and references instead of an open web crawl.',
+    filterLabel: 'Filter by category',
+    secondaryNote: 'Browse by category or search across every saved bookmark.',
+    chips: ['Community-curated', 'Tagged by category', 'Free to submit'],
   },
   profile: {
     eyebrow: 'People and profiles',
@@ -52,11 +52,11 @@ export const taskPageVoices = {
   },
   listing: {
     eyebrow: 'Business directory',
-    headline: 'Business listings built for discovery and comparison.',
-    description: 'Listing pages should behave like a directory with trust cues, metadata, and a practical search rhythm.',
-    filterLabel: 'Filter business category',
-    secondaryNote: 'Prioritize comparison, location, and direct action paths.',
-    chips: ['Directory', 'Compare', 'Business discovery'],
+    headline: 'Local businesses, reviewed and ready to compare.',
+    description: 'Every listing includes contact details, location, and category — built for finding and comparing real businesses, not scrolling an open marketplace.',
+    filterLabel: 'Filter by category',
+    secondaryNote: 'Compare listings by location, category, and contact details.',
+    chips: ['Verified listings', 'Local discovery', 'Free to submit'],
   },
   image: {
     eyebrow: 'Visual gallery',
