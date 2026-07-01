@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowUpRight, BriefcaseBusiness, ChevronDown, Download, FileText, Globe, MapPin, Phone, Search, Star, UserRound } from 'lucide-react'
+import { ArrowUpRight, BriefcaseBusiness, ChevronDown, ChevronLeft, Download, FileText, Globe, MapPin, Phone, Star, UserRound } from 'lucide-react'
 import { buildTaskMetadata } from '@/lib/seo'
 import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/categories'
 import { fetchPaginatedTaskPosts, buildPostUrl } from '@/lib/task-data'
@@ -9,6 +9,10 @@ import { taskPageMetadata } from '@/config/site.content'
 import { taskPageVoices } from '@/editable/content/task-pages.content'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
 import { getTaskTheme, taskThemeStyle } from '@/editable/theme/task-themes'
+import { ArchiveToolbar } from '@/editable/components/ArchiveToolbar'
+import { TaskEmptyState } from '@/editable/components/EmptyStates'
+import { Ads } from '@/lib/ads'
+import { pickAdVariant } from '@/editable/ads/pick-ad-variant'
 
 export const revalidate = 3
 
@@ -66,7 +70,7 @@ const taskGrid: Record<TaskKey, string> = {
 }
 
 // Shared premium surface: hairline border, soft radius, smooth lift on hover.
-const cardBase = 'group block rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_32px_72px_rgba(15,23,42,0.14)]'
+const cardBase = 'group block rounded-[var(--tk-radius)] border border-[var(--tk-line)] bg-[var(--tk-surface)] transition duration-500 hover:-translate-y-1.5 hover:border-[var(--tk-accent)]/30'
 
 export async function EditableTaskArchiveRoute({
   task,
@@ -104,7 +108,7 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
               <span className="h-1 w-1 rounded-full bg-[var(--tk-accent)] opacity-50" />
               <span className="text-[var(--tk-muted)]">{label}</span>
             </div>
-            <h1 className="editable-display mt-6 max-w-3xl text-balance text-[2.5rem] font-semibold leading-[1.06] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
+            <h1 className="editable-display mt-6 max-w-3xl text-balance text-[2.5rem] font-normal leading-[1.06] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
               {voice?.headline || `Browse ${label}`}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--tk-muted)]">{voice?.description || theme.note}</p>
@@ -141,22 +145,44 @@ export function TaskArchiveView({ task, posts, pagination, category, basePath }:
 
         <section className="mx-auto max-w-[var(--editable-container)] px-6 py-16 sm:py-20 lg:px-8">
           {posts.length ? (
-            <div className={taskGrid[task]}>
+            <div className="mb-8">
+              <ArchiveToolbar
+                categories={CATEGORY_OPTIONS}
+                activeCategory={category}
+                basePath={basePath}
+                gridId="archive-grid"
+                sortEnabled={task === 'listing' || task === 'sbm'}
+              />
+            </div>
+          ) : null}
+
+          {posts.length ? (
+            <div id="archive-grid" className={taskGrid[task]}>
               {posts.map((post, index) => <ArchivePostCard key={post.id || post.slug} post={post} task={task} basePath={basePath} index={index} />)}
             </div>
           ) : (
-            <div className="mx-auto max-w-xl rounded-[var(--tk-radius)] border border-dashed border-[var(--tk-line)] bg-[var(--tk-surface)] px-8 py-16 text-center">
-              <Search className="mx-auto h-7 w-7 text-[var(--tk-muted)]" />
-              <h2 className="editable-display mt-5 text-2xl font-semibold tracking-[-0.02em]">Nothing here yet</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--tk-muted)]">Try another category, or check back after new {label.toLowerCase()} are published.</p>
-            </div>
+            <TaskEmptyState taskLabel={label.toLowerCase()} actionLabel={category === 'all' ? 'Explore the site' : 'Clear filters'} actionHref={category === 'all' ? '/' : basePath} />
           )}
+
+          {posts.length && (task === 'listing' || task === 'sbm') ? (
+            <div className="my-12">
+              <Ads slot="in-feed" size={pickAdVariant('in-feed')} showLabel className="mx-auto w-full" />
+            </div>
+          ) : null}
 
           {posts.length ? (
             <nav className="mt-16 flex items-center justify-center gap-3 text-sm">
-              {pagination.hasPrevPage ? <Link href={pageHref(basePath, category, page - 1)} className="rounded-full border border-[var(--tk-line)] px-5 py-2.5 font-medium transition hover:border-[var(--tk-accent)]">Previous</Link> : null}
-              <span className="rounded-full border border-[var(--tk-line)] bg-[var(--tk-surface)] px-5 py-2.5 font-medium text-[var(--tk-muted)]">Page {page} of {pagination.totalPages || 1}</span>
-              {pagination.hasNextPage ? <Link href={pageHref(basePath, category, page + 1)} className="rounded-full border border-[var(--tk-line)] px-5 py-2.5 font-medium transition hover:border-[var(--tk-accent)]">Next</Link> : null}
+              {pagination.hasPrevPage ? (
+                <Link href={pageHref(basePath, category, page - 1)} className="inline-flex items-center gap-1.5 rounded-[var(--editable-radius-pill)] border border-[var(--tk-line)] px-5 py-2.5 font-medium transition hover:border-[var(--tk-accent)]">
+                  <ChevronLeft className="h-4 w-4" /> Previous
+                </Link>
+              ) : null}
+              <span className="rounded-[var(--editable-radius-pill)] border border-[var(--tk-line)] bg-[var(--tk-surface)] px-5 py-2.5 font-medium text-[var(--tk-muted)]">Page {page} of {pagination.totalPages || 1}</span>
+              {pagination.hasNextPage ? (
+                <Link href={pageHref(basePath, category, page + 1)} className="inline-flex items-center gap-1.5 rounded-[var(--editable-radius-pill)] border border-[var(--tk-line)] px-5 py-2.5 font-medium transition hover:border-[var(--tk-accent)]">
+                  Next <ChevronDown className="h-4 w-4 -rotate-90" />
+                </Link>
+              ) : null}
             </nav>
           ) : null}
         </section>
@@ -232,7 +258,7 @@ function ArticleArchiveCard({ post, href, index }: { post: SitePost; href: strin
           <span>{category}</span>
           <span className="text-[var(--tk-muted)]">· No. {String(index + 1).padStart(2, '0')}</span>
         </div>
-        <h2 className="editable-display mt-3 text-2xl font-semibold leading-snug tracking-[-0.02em]">{post.title}</h2>
+        <h2 className="editable-display mt-3 text-2xl font-normal leading-snug tracking-[-0.02em]">{post.title}</h2>
         <RatingLine post={post} />
         <p className="mt-3 line-clamp-2 text-[15px] leading-7 text-[var(--tk-muted)]">{getSummary(post)}</p>
         <CardArrow label="Read article" />
@@ -247,21 +273,21 @@ function ListingArchiveCard({ post, href }: { post: SitePost; href: string }) {
   const phone = getField(post, ['phone', 'telephone', 'mobile'])
   const website = getField(post, ['website', 'url'])
   return (
-    <Link href={href} className={`${cardBase} flex items-center gap-5 p-5 sm:p-6`}>
-      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-[var(--tk-line)] bg-[var(--tk-raised)]">
+    <Link href={href} data-sort-title={post.title.toLowerCase()} className={`${cardBase} flex items-center gap-5 p-5 sm:p-6`}>
+      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--editable-radius-control)] border border-[var(--tk-line)] bg-[var(--tk-raised)]">
         {logo ? <img src={logo} alt="" className="h-full w-full object-cover" /> : <BriefcaseBusiness className="h-9 w-9 text-[var(--tk-muted)]" />}
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="editable-display truncate text-xl font-semibold tracking-[-0.02em]">{post.title}</h2>
+        <h2 className="editable-display truncate text-xl font-normal tracking-[-0.02em]">{post.title}</h2>
         <RatingLine post={post} />
         <p className="mt-2 line-clamp-1 text-sm leading-6 text-[var(--tk-muted)]">{getSummary(post)}</p>
         <div className="mt-3 flex flex-wrap gap-3 text-xs font-medium text-[var(--tk-muted)]">
-          {location ? <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {location}</span> : null}
-          {phone ? <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {phone}</span> : null}
-          {website ? <span className="inline-flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> Website</span> : null}
+          {location ? <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tk-raised)] px-2.5 py-1"><MapPin className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {location}</span> : null}
+          {phone ? <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tk-raised)] px-2.5 py-1"><Phone className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> {phone}</span> : null}
+          {website ? <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--tk-raised)] px-2.5 py-1"><Globe className="h-3.5 w-3.5 text-[var(--tk-accent)]" /> Website</span> : null}
         </div>
       </div>
-      <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--tk-muted)] transition group-hover:text-[var(--tk-accent)]" />
+      <ArrowUpRight className="h-5 w-5 shrink-0 text-[var(--tk-muted)] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--tk-accent)]" />
     </Link>
   )
 }
@@ -273,10 +299,10 @@ function ClassifiedArchiveCard({ post, href }: { post: SitePost; href: string })
   return (
     <Link href={href} className={`${cardBase} flex flex-col p-6 sm:p-7`}>
       <div className="flex items-start justify-between gap-4">
-        <span className="editable-display text-3xl font-semibold tracking-[-0.03em] text-[var(--tk-accent)]">{price || 'Open offer'}</span>
+        <span className="editable-display text-3xl font-normal tracking-[-0.03em] text-[var(--tk-accent)]">{price || 'Open offer'}</span>
         {condition ? <span className="rounded-full bg-[var(--tk-accent-soft)] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--tk-accent)]">{condition}</span> : null}
       </div>
-      <h2 className="editable-display mt-5 text-xl font-semibold leading-snug tracking-[-0.02em]">{post.title}</h2>
+      <h2 className="editable-display mt-5 text-xl font-normal leading-snug tracking-[-0.02em]">{post.title}</h2>
       <RatingLine post={post} />
       <p className="mt-3 line-clamp-3 flex-1 text-sm leading-7 text-[var(--tk-muted)]">{getSummary(post)}</p>
       <div className="mt-6 flex items-center justify-between border-t border-[var(--tk-line)] pt-4 text-xs font-medium text-[var(--tk-muted)]">
@@ -295,7 +321,7 @@ function ImageArchiveCard({ post, href, index }: { post: SitePost; href: string;
         <img src={image} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(0,0,0,0.78))] opacity-80 transition group-hover:opacity-100" />
         <div className="absolute inset-x-0 bottom-0 p-5">
-          <h2 className="editable-display line-clamp-2 text-lg font-semibold leading-snug tracking-[-0.02em] text-white">{post.title}</h2>
+          <h2 className="editable-display line-clamp-2 text-lg font-normal leading-snug tracking-[-0.02em] text-white">{post.title}</h2>
           <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-white/70">View image <ArrowUpRight className="h-3.5 w-3.5" /></span>
         </div>
       </div>
@@ -305,16 +331,22 @@ function ImageArchiveCard({ post, href, index }: { post: SitePost; href: string;
 
 function BookmarkArchiveCard({ post, href, index }: { post: SitePost; href: string; index: number }) {
   const website = getField(post, ['website', 'url', 'link'])
+  const category = getCategory(post, '')
   return (
-    <Link href={href} className={`${cardBase} flex gap-4 p-6`}>
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--tk-accent-soft)] text-[var(--tk-accent)]">
-        <Globe className="h-5 w-5" />
+    <Link href={href} data-sort-title={post.title.toLowerCase()} className={`${cardBase} flex flex-col gap-4 p-6`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--editable-radius-control)] bg-[var(--tk-accent-soft)] text-[var(--tk-accent)]">
+          <Globe className="h-5 w-5" />
+        </div>
+        <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--tk-muted)]">Saved · {String(index + 1).padStart(2, '0')}</span>
       </div>
       <div className="min-w-0 flex-1">
-        <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--tk-muted)]">Saved · {String(index + 1).padStart(2, '0')}</span>
-        <h2 className="editable-display mt-1.5 text-lg font-semibold leading-snug tracking-[-0.02em]">{post.title}</h2>
+        <h2 className="editable-display text-lg font-normal leading-snug tracking-[-0.02em]">{post.title}</h2>
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--tk-muted)]">{getSummary(post)}</p>
-        {website ? <p className="mt-3 truncate text-xs font-medium text-[var(--tk-accent)]">{cleanDomain(website)}</p> : null}
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium">
+          {category ? <span className="rounded-full bg-[var(--tk-raised)] px-2.5 py-1 text-[var(--tk-muted)]">{category}</span> : null}
+          {website ? <span className="truncate text-[var(--tk-accent)]">{cleanDomain(website)}</span> : null}
+        </div>
       </div>
     </Link>
   )
@@ -328,7 +360,7 @@ function PdfArchiveCard({ post, href }: { post: SitePost; href: string }) {
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--tk-accent-soft)] text-[var(--tk-accent)]"><FileText className="h-6 w-6" /></div>
         <span className="rounded-full border border-[var(--tk-line)] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--tk-muted)]">{category}</span>
       </div>
-      <h2 className="editable-display mt-6 text-xl font-semibold leading-snug tracking-[-0.02em]">{post.title}</h2>
+      <h2 className="editable-display mt-6 text-xl font-normal leading-snug tracking-[-0.02em]">{post.title}</h2>
       <RatingLine post={post} />
       <p className="mt-3 line-clamp-3 flex-1 text-sm leading-7 text-[var(--tk-muted)]">{getSummary(post)}</p>
       <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--tk-accent)]">Open document <Download className="h-4 w-4" /></span>
@@ -344,7 +376,7 @@ function ProfileArchiveCard({ post, href }: { post: SitePost; href: string }) {
       <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-[var(--tk-line)] bg-[var(--tk-raised)]">
         {avatar ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-10 w-10 text-[var(--tk-muted)]" />}
       </div>
-      <h2 className="editable-display mt-5 text-lg font-semibold tracking-[-0.02em]">{post.title}</h2>
+      <h2 className="editable-display mt-5 text-lg font-normal tracking-[-0.02em]">{post.title}</h2>
       {role ? <p className="mt-1.5 text-xs font-medium uppercase tracking-[0.16em] text-[var(--tk-accent)]">{role}</p> : null}
       <RatingLine post={post} center />
       <p className="mt-3 line-clamp-2 text-sm leading-6 text-[var(--tk-muted)]">{getSummary(post)}</p>
